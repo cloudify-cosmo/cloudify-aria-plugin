@@ -1,0 +1,28 @@
+machine:
+  python:
+    version: 2.7.11
+
+checkout:
+  post:
+    - >
+      if [ -n "$CI_PULL_REQUEST" ]; then
+        PR_ID=${CI_PULL_REQUEST##*/}
+        git fetch origin +refs/pull/$PR_ID/merge:
+        git checkout -qf FETCH_HEAD
+      fi
+
+dependencies:
+  override:
+    - pip install tox
+
+test:
+  override:
+    - tox -e py27
+    - tox -e flake8_code
+    - tox -e flake8_tests
+
+deployment:
+  release:
+    tag: /.*/
+    commands:
+      - (true)
