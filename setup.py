@@ -16,11 +16,8 @@
 
 from setuptools import setup
 
-# Replace the place holders with values for your project
-
 setup(
 
-    # Do not use underscores in the plugin name.
     name='cloudify-aria-plugin',
     author='cloudify',
     author_email='cosmo-admin@gigaspaces.com',
@@ -28,12 +25,11 @@ setup(
     version='0.1.0',
     description='Cloudify plugin for ARIA.',
 
-    # This must correspond to the actual packages in the plugin.
     packages=['cloudify_aria'],
 
     license='LICENSE',
     install_requires=[
         'cloudify-plugins-common>=3.3.1',
-        'apache-ariatosca==0.1.1',
+        'apache-ariatosca[ssh]==0.1.1',
     ]
 )
