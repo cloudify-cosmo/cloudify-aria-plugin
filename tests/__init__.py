@@ -12,24 +12,3 @@
 #    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
-
-
-from setuptools import setup
-
-setup(
-
-    name='cloudify-aria-plugin',
-    author='cloudify',
-    author_email='cosmo-admin@gigaspaces.com',
-
-    version='0.1.0',
-    description='Cloudify plugin for ARIA.',
-
-    packages=['aria_plugin'],
-
-    license='LICENSE',
-    install_requires=[
-        'cloudify-plugins-common>=3.3.1',
-        'apache-ariatosca[ssh]==0.1.1',
-    ]
-)
