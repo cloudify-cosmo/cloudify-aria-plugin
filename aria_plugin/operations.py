@@ -19,9 +19,8 @@ import aria
 from cloudify import ctx
 from cloudify.decorators import operation
 
-from .constants import (CSAR_PATH_PROPERTY, INPUTS_PROPERTY, PLUGINS_PROPERTY,
-                        SERVICE_TEMPLATE_NAME_FORMAT)
-
+from . import executor
+from .constants import (CSAR_PATH_PROPERTY, INPUTS_PROPERTY, PLUGINS_PROPERTY)
 from .environment import Environment
 from .utils import (generate_csar_source, extract_csar, install_plugins,
                     log_unused_plugins, store_service_template, create_service,
@@ -51,19 +50,26 @@ def create():
     aria.install_aria_extensions()
     service_template_path = os.path.join(csar.destination,
                                          csar.entry_definitions)
-    service_template_name = SERVICE_TEMPLATE_NAME_FORMAT.format(
-        tenant=ctx.tenant_name, dep_id=ctx.deployment.id)
     ctx.logger.info('Storing service template {0}...'
-                    .format(service_template_name))
+                    .format(env.service_template_name))
     store_service_template(env.core, service_template_path,
-                           service_template_name)
+                           env.service_template_name)
     ctx.logger.info('Successfully stored service template')
 
     # create service
     inputs = ctx.node.properties[INPUTS_PROPERTY]
     ctx.logger.info('Creating service {0} with inputs {1}...'
-                    .format(service_template_name, inputs))
-    create_service(env.core, service_template_name, inputs)
+                    .format(env.service_template_name, inputs))
+    create_service(env.core, env.service_template_name, inputs)
     ctx.logger.info('Successfully created service')
 
     cleanup_files(files_to_remove)
+
+
+@operation
+def start():
+    env = Environment()
+    service = env.model_storage.service.list(
+        filters={'service_template_name': env.service_template_name}
+    )[0]
+    executor.execute(service, 'install')
