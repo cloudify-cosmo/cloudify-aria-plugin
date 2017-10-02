@@ -23,6 +23,8 @@ from aria.storage.sql_mapi import SQLAlchemyModelAPI
 from aria.storage.filesystem_rapi import FileSystemResourceAPI
 from cloudify import ctx
 
+from . import constants
+
 
 class Environment(object):
 
@@ -105,6 +107,11 @@ class Environment(object):
         _create_if_not_existing(self.aria_plugins_dir)
         _create_if_not_existing(self.model_storage_dir)
         _create_if_not_existing(self.resource_storage_dir)
+
+    @property
+    def service_template_name(self):
+        return constants.SERVICE_TEMPLATE_NAME_FORMAT.format(
+            tenant=ctx.tenant_name, dep_id=ctx.deployment.id)
 
 
 def _create_if_not_existing(path):
