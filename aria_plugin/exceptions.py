@@ -18,3 +18,7 @@ from cloudify.exceptions import NonRecoverableError
 
 class MissingPluginsException(NonRecoverableError):
     pass
+
+
+class MissingServiceException(NonRecoverableError):
+    pass
