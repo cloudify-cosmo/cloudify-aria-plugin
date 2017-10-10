@@ -24,6 +24,7 @@ from aria.storage.filesystem_rapi import FileSystemResourceAPI
 from cloudify import ctx
 
 from . import constants
+from .exceptions import MissingServiceException
 
 
 class Environment(object):
@@ -112,6 +113,17 @@ class Environment(object):
     def service_template_name(self):
         return constants.SERVICE_TEMPLATE_NAME_FORMAT.format(
             tenant=ctx.tenant_name, dep_id=ctx.deployment.id)
+
+    @property
+    def service(self):
+        services = self.model_storage.service.list(
+            filters={'service_template_name': self.service_template_name})
+        if services:
+            return services[0]
+        else:
+            raise MissingServiceException(
+                'No services exist for service template {0}'
+                .format(self.service_template_name))
 
 
 def _create_if_not_existing(path):

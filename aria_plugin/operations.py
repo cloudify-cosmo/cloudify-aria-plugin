@@ -28,7 +28,7 @@ from .utils import (generate_csar_source, extract_csar, install_plugins,
 
 
 @operation
-def create():
+def create(**_):
     env = Environment()
 
     # extract csar
@@ -67,12 +67,19 @@ def create():
 
 
 @operation
-def start():
+def start(**_):
     env = Environment()
-    service = env.model_storage.service.list(
-        filters={'service_template_name': env.service_template_name}
-    )[0]
-    executor.execute(service, 'install')
-
+    executor.execute(env.service, 'install')
     ctx.node.runtime_properties.update(
-        (k, o.value) for k, o in service.outputs.items())
+        (k, o.value) for k, o in env.service.outputs.items())
+
+
+@operation
+def stop(**_):
+    env = Environment()
+    executor.execute(env.service, 'uninstall')
+
+
+@operation
+def delete(**_):
+    pass
