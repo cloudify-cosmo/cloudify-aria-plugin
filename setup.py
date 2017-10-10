@@ -13,7 +13,6 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
-
 from setuptools import setup
 
 setup(
@@ -29,7 +28,12 @@ setup(
 
     license='LICENSE',
     install_requires=[
-        'cloudify-plugins-common>=3.3.1',
         'apache-ariatosca[ssh]==0.1.1',
+        'cloudify-plugins-common>=3.3.1',
+        # Until wagon version is normalized, we hard-code the wagon version.
+        'wagon==0.6.1',
+        # Setuptools used by cloudify is fairly recent as opposed to ARIA.
+        # The ARIA setuptools dependency should be updated in future releases.
+        'setuptools>=36.5.0'
     ]
 )
