@@ -73,3 +73,6 @@ def start():
         filters={'service_template_name': env.service_template_name}
     )[0]
     executor.execute(service, 'install')
+
+    ctx.node.runtime_properties.update(
+        (k, o.value) for k, o in service.outputs.items())
