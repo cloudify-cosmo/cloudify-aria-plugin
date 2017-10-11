@@ -23,7 +23,8 @@ from aria.cli.logger import ModelLogIterator
 from .environment import Environment
 
 
-def execute(service, workflow_name, logger=ctx.logger):
+def execute(service, workflow_name, logger=None):
+    logger = logger or ctx.logger
     env = Environment()
     runner = workflow_runner.WorkflowRunner(
         env.model_storage, env.resource_storage, env.plugin_manager,
