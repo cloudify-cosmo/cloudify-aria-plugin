@@ -25,7 +25,6 @@ setup(
     description='Cloudify plugin for ARIA.',
 
     packages=['aria_plugin'],
-
     license='LICENSE',
     install_requires=[
         'apache-ariatosca[ssh]==0.1.1',
