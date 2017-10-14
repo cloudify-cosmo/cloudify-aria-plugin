@@ -69,7 +69,7 @@ def create(**_):
 def start(**_):
     env = Environment()
     executor.execute(env.service, 'install')
-    ctx.node.runtime_properties.update(
+    ctx.instance.runtime_properties.update(
         (k, o.value) for k, o in env.service.outputs.items())
 
 
@@ -81,4 +81,27 @@ def stop(**_):
 
 @operation
 def delete(**_):
-    pass
+    env = Environment()
+
+    # delete the service
+    service_id = env.service.id
+    ctx.logger.info('Deleting service {0}...'
+                    .format(env.service_template_name))
+    env.core.delete_service(service_id)
+    ctx.logger.info('Successfully deleted service {0}...'
+                    .format(env.service_template_name))
+
+    # delete the service template
+    service_template_id = env.model_storage.service_template.get_by_name(
+        env.service_template_name).id
+    ctx.logger.info('Deleting service template {0}...'
+                    .format(env.service_template_name))
+    env.core.delete_service_template(service_template_id)
+    ctx.logger.info('Successfully deleted service template {0}...'
+                    .format(env.service_template_name))
+
+    # if there are no more stored service templates,
+    # then remove the aria working dir
+    service_templates = env.model_storage.service_template.list()
+    if len(service_templates) == 0:
+        env.rm_working_dir()

@@ -23,7 +23,7 @@ from aria.storage.sql_mapi import SQLAlchemyModelAPI
 from aria.storage.filesystem_rapi import FileSystemResourceAPI
 from cloudify import ctx
 
-from . import constants
+from . import constants, utils
 from .exceptions import MissingServiceException
 
 
@@ -35,7 +35,10 @@ class Environment(object):
 
     def __init__(self):
 
-        self._mk_working_dir()
+        self._workdir = self._mk_working_dir()
+        _create_if_not_existing(self.aria_plugins_dir)
+        _create_if_not_existing(self.model_storage_dir)
+        _create_if_not_existing(self.resource_storage_dir)
 
         self._to_clean = []
 
@@ -102,12 +105,13 @@ class Environment(object):
         dir_name = 'aria-{tenant_name}'.format(tenant_name=ctx.tenant_name)
         abs_path = os.path.join(self.CLOUDIFY_PLUGINS_DIR, dir_name)
 
-        self._workdir = _create_if_not_existing(abs_path)
+        workdir_path = _create_if_not_existing(abs_path)
 
-        # create subdirectories
-        _create_if_not_existing(self.aria_plugins_dir)
-        _create_if_not_existing(self.model_storage_dir)
-        _create_if_not_existing(self.resource_storage_dir)
+        return workdir_path
+
+    def rm_working_dir(self):
+        utils.silent_remove(self.workdir)
+        self._workdir = None
 
     @property
     def service_template_name(self):

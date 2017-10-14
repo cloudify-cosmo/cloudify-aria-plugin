@@ -84,7 +84,7 @@ def _log_unused_plugins(logger, sources_dir, installed_plugins):
 
 def cleanup_files(files_to_remove):
     for path in files_to_remove:
-        _silent_remove(path)
+        silent_remove(path)
 
 
 def _prepare_plugins_for_installation(sources_dir, plugins_to_install):
@@ -99,7 +99,7 @@ def _prepare_plugins_for_installation(sources_dir, plugins_to_install):
     return plugins_to_install
 
 
-def _silent_remove(path):
+def silent_remove(path):
     try:
         if os.path.isfile(path):
             os.remove(path)
