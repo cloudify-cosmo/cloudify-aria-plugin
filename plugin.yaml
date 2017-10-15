@@ -5,7 +5,7 @@
 plugins:
   aria:
     executor: central_deployment_agent
-    source: https://github.com/cloudify-cosmo/cloudify-aria-plugin/archive/0.1.0.zip
+    source: https://github.com/cloudify-cosmo/cloudify-aria-plugin/archive/master.zip
     package_name: cloudify-aria-plugin
     package_version: '0.1.0'
 
@@ -13,7 +13,7 @@ plugins:
 node_types:
 
   cloudify.aria.nodes.Service:
-    derived_from: cloudify.nodes.Compute
+    derived_from: cloudify.nodes.Root
     properties:
       csar_path:
         description: >
@@ -23,12 +23,12 @@ node_types:
       inputs:
         description: >
           Inputs to the ARIA service template.
-        type: dict
+        default: {}
       plugins:
         description: >
           A list of plugin names to be installed. These plugins should be located in
           the CSAR plugins dir.
-        type: list
+        default: []
     interfaces:
       cloudify.interfaces.lifecycle:
         create: aria.aria_plugin.operations.create

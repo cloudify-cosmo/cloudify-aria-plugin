@@ -1,0 +1,16 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.2.dev1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-aria-plugin/master/plugin.yaml
+
+node_templates:
+  aria_node:
+    type: cloudify.aria.nodes.Service
+    properties:
+      csar_path: resources/aria-hello-world.csar
+
+outputs:
+  http_endpoint:
+    description: Web server external endpoint
+    value: { get_attribute: [aria_node, port] }
