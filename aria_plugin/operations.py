@@ -23,8 +23,7 @@ from . import executor
 from .constants import (CSAR_PATH_PROPERTY, INPUTS_PROPERTY, PLUGINS_PROPERTY)
 from .environment import Environment
 from .utils import (generate_csar_source, extract_csar, install_plugins,
-                    log_unused_plugins, store_service_template, create_service,
-                    cleanup_files)
+                    store_service_template, create_service, cleanup_files)
 
 
 @operation
@@ -42,9 +41,9 @@ def create(**_):
     plugins_to_install = ctx.node.properties[PLUGINS_PROPERTY]
     ctx.logger.info('Installing required plugins for ARIA: {0}...'
                     .format(plugins_to_install))
-    install_plugins(csar_plugins_dir, plugins_to_install, env.plugin_manager)
+    install_plugins(csar_plugins_dir, plugins_to_install,
+                    env.plugin_manager, ctx.logger)
     ctx.logger.info('Successfully installed required plugins')
-    log_unused_plugins(ctx.logger, csar_plugins_dir, plugins_to_install)
 
     # store service template
     aria.install_aria_extensions()

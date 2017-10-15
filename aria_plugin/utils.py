@@ -52,16 +52,26 @@ def create_service(core, service_template_name, inputs):
     core.create_service(service_template.id, inputs)
 
 
-def install_plugins(sources_dir, plugins_to_install, plugin_manager):
-    prepared_plugins = _prepare_plugins_for_installation(
-        sources_dir, plugins_to_install)
-    for plugin_to_install in prepared_plugins:
-        plugin_path = os.path.join(sources_dir, plugin_to_install)
-        plugin_manager.validate_plugin(plugin_path)
-        plugin_manager.install(plugin_path)
+def install_plugins(sources_dir, plugins_to_install, plugin_manager,
+                    logger=None):
+    if os.path.exists(sources_dir) and os.path.isdir(sources_dir):
+        prepared_plugins = _prepare_plugins_for_installation(
+            sources_dir, plugins_to_install)
+        for plugin_to_install in prepared_plugins:
+            plugin_path = os.path.join(sources_dir, plugin_to_install)
+            plugin_manager.validate_plugin(plugin_path)
+            plugin_manager.install(plugin_path)
+        if logger:
+            _log_unused_plugins(logger, sources_dir, plugins_to_install)
+    else:
+        if plugins_to_install:
+            raise MissingPluginsException(
+                'Plugins to install were supplied under the "plugins" '
+                'property of the Service node, but the referenced CSAR does '
+                'not have a "plugins" directory')
 
 
-def log_unused_plugins(logger, sources_dir, installed_plugins):
+def _log_unused_plugins(logger, sources_dir, installed_plugins):
     for file_ in os.listdir(sources_dir):
         if file_ not in installed_plugins:
             if file_.endswith(WAGON_EXTENSION):
