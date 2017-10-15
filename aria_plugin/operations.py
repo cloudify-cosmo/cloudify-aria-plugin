@@ -19,17 +19,16 @@ import aria
 from cloudify import ctx
 from cloudify.decorators import operation
 
-from . import executor
 from .constants import (CSAR_PATH_PROPERTY, INPUTS_PROPERTY, PLUGINS_PROPERTY)
 from .environment import Environment
 from .utils import (generate_csar_source, extract_csar, install_plugins,
                     store_service_template, create_service, cleanup_files)
+from . import executor
 
 
 @operation
 def create(**_):
-    env = Environment()
-
+    env = Environment(ctx)
     # extract csar
     csar_path = ctx.node.properties[CSAR_PATH_PROPERTY]
     csar_source = generate_csar_source(csar_path, env.blueprint_dir)
@@ -67,21 +66,21 @@ def create(**_):
 
 @operation
 def start(**_):
-    env = Environment()
-    executor.execute(env.service, 'install')
+    env = Environment(ctx)
+    executor.execute(env, 'install')
     ctx.instance.runtime_properties.update(
         (k, o.value) for k, o in env.service.outputs.items())
 
 
 @operation
 def stop(**_):
-    env = Environment()
-    executor.execute(env.service, 'uninstall')
+    env = Environment(ctx)
+    executor.execute(env, 'uninstall')
 
 
 @operation
 def delete(**_):
-    env = Environment()
+    env = Environment(ctx)
 
     # delete the service
     service_id = env.service.id
