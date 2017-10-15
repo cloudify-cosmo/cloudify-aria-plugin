@@ -21,7 +21,6 @@ from aria.core import Core
 from aria.orchestrator.plugin import PluginManager
 from aria.storage.sql_mapi import SQLAlchemyModelAPI
 from aria.storage.filesystem_rapi import FileSystemResourceAPI
-from cloudify import ctx
 
 from . import constants, utils
 from .exceptions import MissingServiceException
@@ -33,8 +32,8 @@ class Environment(object):
     BLUEPRINTS_DIR = os.path.join(MANAGER_RESOURCES_DIR, 'blueprints')
     CLOUDIFY_PLUGINS_DIR = os.path.join(MANAGER_RESOURCES_DIR, 'plugins')
 
-    def __init__(self):
-
+    def __init__(self, ctx):
+        self._ctx = ctx
         self._workdir = self._mk_working_dir()
         _create_if_not_existing(self.aria_plugins_dir)
         _create_if_not_existing(self.model_storage_dir)
@@ -49,14 +48,18 @@ class Environment(object):
         self._core = None
 
     @property
+    def ctx_logger(self):
+        return self._ctx.logger
+
+    @property
     def workdir(self):
         return self._workdir
 
     @property
     def blueprint_dir(self):
         return os.path.join(self.BLUEPRINTS_DIR,
-                            ctx.tenant_name,
-                            ctx.blueprint.id)
+                            self._ctx.tenant_name,
+                            self._ctx.blueprint.id)
 
     @property
     def model_storage(self):
@@ -102,7 +105,8 @@ class Environment(object):
         return os.path.join(self.workdir, 'resources')
 
     def _mk_working_dir(self):
-        dir_name = 'aria-{tenant_name}'.format(tenant_name=ctx.tenant_name)
+        dir_name = 'aria-{tenant_name}'.format(
+            tenant_name=self._ctx.tenant_name)
         abs_path = os.path.join(self.CLOUDIFY_PLUGINS_DIR, dir_name)
 
         workdir_path = _create_if_not_existing(abs_path)
@@ -116,7 +120,7 @@ class Environment(object):
     @property
     def service_template_name(self):
         return constants.SERVICE_TEMPLATE_NAME_FORMAT.format(
-            tenant=ctx.tenant_name, dep_id=ctx.deployment.id)
+            tenant=self._ctx.tenant_name, dep_id=self._ctx.deployment.id)
 
     @property
     def service(self):
