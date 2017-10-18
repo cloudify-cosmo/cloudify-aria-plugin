@@ -22,3 +22,7 @@ class MissingPluginsException(NonRecoverableError):
 
 class MissingServiceException(NonRecoverableError):
     pass
+
+
+class AriaWorkflowError(NonRecoverableError):
+    pass
