@@ -21,6 +21,7 @@ from cloudify.decorators import operation
 
 from .constants import (CSAR_PATH_PROPERTY, INPUTS_PROPERTY, PLUGINS_PROPERTY)
 from .environment import Environment
+from .exceptions import PluginsAlreadyExistException
 from .utils import (generate_csar_source, extract_csar, install_plugins,
                     store_service_template, create_service, cleanup_files)
 from . import executor
@@ -40,8 +41,11 @@ def create(**_):
     plugins_to_install = ctx.node.properties[PLUGINS_PROPERTY]
     ctx.logger.info('Installing required plugins for ARIA: {0}...'
                     .format(plugins_to_install))
-    install_plugins(csar_plugins_dir, plugins_to_install,
-                    env.plugin_manager, ctx.logger)
+    try:
+        install_plugins(csar_plugins_dir, plugins_to_install,
+                        env.plugin_manager, ctx.logger)
+    except PluginsAlreadyExistException as e:
+        ctx.logger.debug(e.message)
     ctx.logger.info('Successfully installed required plugins')
 
     # store service template
