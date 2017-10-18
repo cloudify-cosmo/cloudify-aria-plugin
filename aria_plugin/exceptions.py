@@ -20,7 +20,7 @@ class MissingPluginsException(NonRecoverableError):
     pass
 
 
-class PluginsAlreadyExistException(BaseException):
+class PluginsAlreadyExistException(Exception):
     pass
 
 
