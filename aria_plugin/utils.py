@@ -20,9 +20,9 @@ import tempfile
 
 
 from aria.cli import csar
-
+from aria.orchestrator.exceptions import PluginAlreadyExistsError
 from .constants import WAGON_EXTENSION
-from .exceptions import MissingPluginsException
+from .exceptions import MissingPluginsException, PluginsAlreadyExistException
 
 
 def extract_csar(csar_source, logger):
@@ -55,14 +55,21 @@ def create_service(core, service_template_name, inputs):
 def install_plugins(sources_dir, plugins_to_install, plugin_manager,
                     logger=None):
     if os.path.exists(sources_dir) and os.path.isdir(sources_dir):
+        already_installed_plugins = []
         prepared_plugins = _prepare_plugins_for_installation(
             sources_dir, plugins_to_install)
         for plugin_to_install in prepared_plugins:
             plugin_path = os.path.join(sources_dir, plugin_to_install)
             plugin_manager.validate_plugin(plugin_path)
-            plugin_manager.install(plugin_path)
+            try:
+                plugin_manager.install(plugin_path)
+            except PluginAlreadyExistsError:
+                already_installed_plugins.append(
+                    os.path.basename(plugin_path))
         if logger:
             _log_unused_plugins(logger, sources_dir, plugins_to_install)
+        if already_installed_plugins:
+            raise PluginsAlreadyExistException(already_installed_plugins)
     else:
         if plugins_to_install:
             raise MissingPluginsException(

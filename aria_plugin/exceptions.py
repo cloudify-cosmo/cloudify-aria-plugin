@@ -20,6 +20,10 @@ class MissingPluginsException(NonRecoverableError):
     pass
 
 
+class PluginsAlreadyExistException(BaseException):
+    pass
+
+
 class MissingServiceException(NonRecoverableError):
     pass
 
