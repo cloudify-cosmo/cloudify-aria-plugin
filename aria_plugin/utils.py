@@ -13,7 +13,6 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
-import errno
 import os
 import shutil
 import tempfile
@@ -33,7 +32,7 @@ def extract_csar(csar_source, logger):
 def generate_resource_path(resource_path, blueprint_dir):
     parsed_url = urlparse(resource_path)
     if not parsed_url.scheme:
-        # the csar_path property is relative to the blueprint's directory
+        # the resource_path is relative to the blueprint's directory
         resource_path = os.path.join(blueprint_dir, resource_path)
     return resource_path
 

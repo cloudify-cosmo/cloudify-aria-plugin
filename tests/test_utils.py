@@ -15,7 +15,7 @@
 import os
 
 import pytest
-from aria.orchestrator import exceptions as aria_exception
+from aria.orchestrator import exceptions as aria_exceptions
 from aria.cli import csar
 
 from aria_plugin import utils, exceptions
@@ -32,16 +32,16 @@ class TestInstallPlugins(object):
         self.mocked_logger = mocker.MagicMock()
         self.mocked_plugin_manager = mocker.MagicMock()
 
-    def test_install_plugin(self, mocker):
+    def test_install_plugin_without_exceptions(self, mocker):
         mocker.patch('aria_plugin.utils._prepare_plugins_for_installation',
                      return_value=[self.mock_plugin_name])
         mocker.patch('os.listdir', return_value=['plugin1', 'wagon.wgn'])
 
         utils.install_plugins(
-            self.workdir,
-            [self.mock_plugin_name],
-            self.mocked_plugin_manager,
-            self.mocked_logger
+            sources_dir=self.workdir,
+            plugins_to_install=[self.mock_plugin_name],
+            plugin_manager=self.mocked_plugin_manager,
+            logger=self.mocked_logger
         )
 
         utils._prepare_plugins_for_installation.assert_called_once_with(
@@ -60,43 +60,39 @@ class TestInstallPlugins(object):
             os.path.join(self.workdir, self.mock_plugin_name)
         )
 
-        assert len(self.mocked_logger.method_calls) == 2
+        assert self.mocked_logger.debug.call_count == 2
 
     def test_install_existing_plugin(self, mocker):
         mocker.patch('aria_plugin.utils._prepare_plugins_for_installation',
                      return_value=[self.mock_plugin_name])
 
-        def existing_plugin_error(*args, **kwargs):
-            raise aria_exception.PluginAlreadyExistsError()
-
-        self.mocked_plugin_manager.install = existing_plugin_error
+        self.mocked_plugin_manager.install.side_effect = \
+            aria_exceptions.PluginAlreadyExistsError
 
         with pytest.raises(exceptions.PluginsAlreadyExistException):
             utils.install_plugins(
-                self.workdir,
-                [self.mock_plugin_name],
-                self.mocked_plugin_manager,
-                self.mocked_logger
+                sources_dir=self.workdir,
+                plugins_to_install=[self.mock_plugin_name],
+                plugin_manager=self.mocked_plugin_manager,
+                logger=self.mocked_logger
             )
 
-    def test_non_existing_plugins_dir(self, mocker):
-        mocker.patch('aria_plugin.utils._prepare_plugins_for_installation',
-                     return_value=[self.mock_plugin_name])
+    def test_non_existing_plugins_dir(self):
         with pytest.raises(exceptions.MissingPluginsException):
             utils.install_plugins(
-                'non_existing_dir',
-                '[plugin_to_install',
-                'plugin_manager',
+                sources_dir='non_existing_dir',
+                plugins_to_install='[plugin_to_install]',
+                plugin_manager='plugin_manager',
             )
 
-    def test_prepare_plugin_for_installation(self, mocker):
+    def test_prepare_plugins_for_installation(self, mocker):
         mocker.patch('os.listdir', return_value=['plugin1'])
 
-        installed_plugins = utils._prepare_plugins_for_installation(
+        plugins_to_install = utils._prepare_plugins_for_installation(
             'mock_dir',
             ['plugin1']
         )
-        assert installed_plugins == set(['plugin1'])
+        assert plugins_to_install == set(['plugin1'])
 
         with pytest.raises(exceptions.MissingPluginsException):
             utils._prepare_plugins_for_installation('mock_dir', ['plugin2'])
@@ -106,9 +102,9 @@ def test_extract_csar(mocker):
     mocker.patch('aria.cli.csar.read')
     utils.extract_csar('mock_source', 'mock_logger')
 
-    _, kwargs = csar.read.call_args
-    assert kwargs['source'] == 'mock_source'
-    assert kwargs['logger'] == 'mock_logger'
+    csar.read.assert_called_with(source='mock_source',
+                                 logger='mock_logger',
+                                 destination=mocker.ANY)
 
 
 def test_generate_resource_path():
@@ -125,19 +121,23 @@ def test_cleanup_files(tmpdir):
         for f in files:
             f.write('content')
 
+    # Create 2 top level files
     files = [tmpdir.join(f) for f in ('file1', 'file2')]
     _touch_files(files)
     files_path = [f.strpath for f in files]
 
+    # Create a direcotry and create 2 additional files
     dir_ = tmpdir.mkdir("sub")
     dir_path = dir_.strpath
     sub_files = [dir_.join(f) for f in ('sub_file1', 'sub_file2')]
     _touch_files(sub_files)
     sub_files_paths = [f.strpath for f in sub_files]
 
+    # assert all files were created
     assert all(os.path.exists(path) for path in files_path)
     assert all(os.path.exists(path) for path in sub_files_paths)
 
+    # delete the dir and assert the two files inside the dir were deleted
     utils.cleanup_files([dir_path])
 
     assert not any(os.path.exists(path) for path in sub_files_paths)
@@ -145,6 +145,7 @@ def test_cleanup_files(tmpdir):
 
     assert all(os.path.exists(path) for path in files_path)
 
+    # delete the 2 additional top level files
     utils.cleanup_files(files_path)
     assert not any(os.path.exists(path) for path in files_path)
 
