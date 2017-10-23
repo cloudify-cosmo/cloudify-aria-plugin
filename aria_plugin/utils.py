@@ -13,10 +13,12 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
+import errno
 import os
 import shutil
 import tempfile
 from urlparse import urlparse
+
 
 from aria.cli import csar
 from aria.orchestrator.exceptions import PluginAlreadyExistsError
@@ -96,3 +98,12 @@ def silent_remove(path):
         os.remove(path)
     elif os.path.isdir(path):
         shutil.rmtree(path)
+
+
+def silent_create(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+    return path

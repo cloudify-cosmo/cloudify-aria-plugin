@@ -12,6 +12,7 @@
 #    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
+
 import os
 
 import pytest
@@ -174,3 +175,16 @@ def test_silent_remove(tmpdir):
     utils.silent_remove(non_existing_file.strpath)
 
     assert_structure(exists=False)
+
+
+def test_silent_create(tmpdir):
+    tmp_path = tmpdir.strpath
+    file_path = os.path.join(tmp_path, 'new_file')
+    created_path = utils.silent_create(file_path)
+
+    assert file_path == created_path
+    assert os.path.exists(file_path)
+
+    created_path = utils.silent_create(file_path)
+    assert file_path == created_path
+    assert os.path.exists(file_path)

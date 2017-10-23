@@ -13,7 +13,6 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
-import errno
 import os
 
 import aria
@@ -35,9 +34,9 @@ class Environment(object):
     def __init__(self, ctx):
         self._ctx = ctx
         self._workdir = self._mk_working_dir()
-        _create_if_not_existing(self.aria_plugins_dir)
-        _create_if_not_existing(self.model_storage_dir)
-        _create_if_not_existing(self.resource_storage_dir)
+        utils.silent_create(self.aria_plugins_dir)
+        utils.silent_create(self.model_storage_dir)
+        utils.silent_create(self.resource_storage_dir)
 
         self._to_clean = []
 
@@ -109,7 +108,7 @@ class Environment(object):
             tenant_name=self._ctx.tenant_name)
         abs_path = os.path.join(self.CLOUDIFY_PLUGINS_DIR, dir_name)
 
-        workdir_path = _create_if_not_existing(abs_path)
+        workdir_path = utils.silent_create(abs_path)
 
         return workdir_path
 
@@ -132,12 +131,3 @@ class Environment(object):
             raise MissingServiceException(
                 'No services exist for service template {0}'
                 .format(self.service_template_name))
-
-
-def _create_if_not_existing(path):
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-    return path
