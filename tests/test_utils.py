@@ -32,7 +32,7 @@ class TestInstallPlugins(object):
         self.mocked_logger = mocker.MagicMock()
         self.mocked_plugin_manager = mocker.MagicMock()
 
-    def test_install_plugin_without_exceptions(self, mocker):
+    def test_install_plugins_without_exceptions(self, mocker):
         mocker.patch('aria_plugin.utils._prepare_plugins_for_installation',
                      return_value=[self.mock_plugin_name])
         mocker.patch('os.listdir', return_value=['plugin1', 'wagon.wgn'])
@@ -121,12 +121,12 @@ def test_cleanup_files(tmpdir):
         for f in files:
             f.write('content')
 
-    # Create 2 top level files
+    # Create two files on the top level
     files = [tmpdir.join(f) for f in ('file1', 'file2')]
     _touch_files(files)
     files_path = [f.strpath for f in files]
 
-    # Create a direcotry and create 2 additional files
+    # Create a direcotry and two files
     dir_ = tmpdir.mkdir("sub")
     dir_path = dir_.strpath
     sub_files = [dir_.join(f) for f in ('sub_file1', 'sub_file2')]
