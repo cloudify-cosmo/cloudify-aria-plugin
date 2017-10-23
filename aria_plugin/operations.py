@@ -22,8 +22,8 @@ from cloudify.decorators import operation
 from .constants import (CSAR_PATH_PROPERTY, INPUTS_PROPERTY, PLUGINS_PROPERTY)
 from .environment import Environment
 from .exceptions import PluginsAlreadyExistException
-from .utils import (generate_csar_source, extract_csar, install_plugins,
-                    store_service_template, create_service, cleanup_files)
+from .utils import (generate_resource_path, extract_csar, install_plugins,
+                    cleanup_files)
 from . import executor
 
 
@@ -32,7 +32,7 @@ def create(**_):
     env = Environment(ctx)
     # extract csar
     csar_path = ctx.node.properties[CSAR_PATH_PROPERTY]
-    csar_source = generate_csar_source(csar_path, env.blueprint_dir)
+    csar_source = generate_resource_path(csar_path, env.blueprint_dir)
     csar = extract_csar(csar_source, ctx.logger)
     files_to_remove = [csar.destination]
     csar_plugins_dir = os.path.join(csar.destination, 'plugins')
@@ -54,15 +54,19 @@ def create(**_):
                                          csar.entry_definitions)
     ctx.logger.info('Storing service template {0}...'
                     .format(env.service_template_name))
-    store_service_template(env.core, service_template_path,
-                           env.service_template_name)
+    env.core.create_service_template(
+        service_template_path,
+        service_template_dir=os.path.dirname(service_template_path),
+        service_template_name=env.service_template_name)
     ctx.logger.info('Successfully stored service template')
 
     # create service
     inputs = ctx.node.properties[INPUTS_PROPERTY]
     ctx.logger.info('Creating service {0} with inputs {1}...'
                     .format(env.service_template_name, inputs))
-    create_service(env.core, env.service_template_name, inputs)
+    service_template = env.core.model_storage.service_template.get_by_name(
+        env.service_template_name)
+    env.core.create_service(service_template.id, inputs)
     ctx.logger.info('Successfully created service')
 
     cleanup_files(files_to_remove)

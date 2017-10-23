@@ -13,11 +13,10 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
-import errno
 import os
 import shutil
 import tempfile
-
+from urlparse import urlparse
 
 from aria.cli import csar
 from aria.orchestrator.exceptions import PluginAlreadyExistsError
@@ -30,26 +29,12 @@ def extract_csar(csar_source, logger):
     return csar.read(source=csar_source, destination=csar_dest, logger=logger)
 
 
-def generate_csar_source(csar_path, blueprint_dir):
-    if '://' not in csar_path:
-        # the csar_path property is relative to the blueprint's directory
-        csar_path = os.path.join(blueprint_dir, csar_path)
-    return csar_path
-
-
-def store_service_template(core, service_template_path,
-                           service_template_name):
-    core.create_service_template(
-        service_template_path,
-        service_template_dir=os.path.dirname(service_template_path),
-        service_template_name=service_template_name)
-    return service_template_name
-
-
-def create_service(core, service_template_name, inputs):
-    service_template = core.model_storage.service_template.get_by_name(
-        service_template_name)
-    core.create_service(service_template.id, inputs)
+def generate_resource_path(resource_path, blueprint_dir):
+    parsed_url = urlparse(resource_path)
+    if not parsed_url.scheme:
+        # the resource_path is relative to the blueprint's directory
+        resource_path = os.path.join(blueprint_dir, resource_path)
+    return resource_path
 
 
 def install_plugins(sources_dir, plugins_to_install, plugin_manager,
@@ -107,11 +92,7 @@ def _prepare_plugins_for_installation(sources_dir, plugins_to_install):
 
 
 def silent_remove(path):
-    try:
-        if os.path.isfile(path):
-            os.remove(path)
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
+    if os.path.isfile(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
