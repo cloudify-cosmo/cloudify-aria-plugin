@@ -44,7 +44,7 @@ from threading import Thread
 from aria_plugin.exceptions import AriaWorkflowError
 from aria.orchestrator import workflow_runner
 from aria.orchestrator.workflows.executor import process
-from aria.cli.logger import ModelLogIterator
+from aria.cli import logger
 
 
 class ARIAPluginExecutor(process.ProcessExecutor):
@@ -87,7 +87,8 @@ def execute(env, workflow_name):
     thread = Thread(target=runner.execute)
     thread.start()
 
-    log_iterator = ModelLogIterator(env.model_storage, runner.execution_id)
+    log_iterator = logger.ModelLogIterator(env.model_storage,
+                                           runner.execution_id)
 
     while thread.is_alive():
         for log in log_iterator:
