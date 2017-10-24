@@ -7,7 +7,7 @@ plugins:
     executor: central_deployment_agent
     source: https://github.com/cloudify-cosmo/cloudify-aria-plugin/archive/master.zip
     package_name: cloudify-aria-plugin
-    package_version: '0.1.0'
+    package_version: '1.0.0'
 
 
 node_types:
