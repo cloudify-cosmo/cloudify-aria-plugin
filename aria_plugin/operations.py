@@ -21,7 +21,8 @@ from cloudify.decorators import operation
 
 from .constants import (CSAR_PATH_PROPERTY, INPUTS_PROPERTY, PLUGINS_PROPERTY)
 from .environment import Environment
-from .exceptions import PluginsAlreadyExistException
+from .exceptions import (PluginsAlreadyExistException,
+                         ServiceTemplateAlreadyExistsException)
 from .utils import (generate_resource_path, extract_csar, install_plugins,
                     cleanup_files)
 from . import executor
@@ -30,6 +31,18 @@ from . import executor
 @operation
 def create(**_):
     env = Environment(ctx)
+    # Make sure there is no other stored service template with the same name.
+    # We check this here, and not catching the exception that ARIA raises in
+    # this case since we want to preform this check before any 'heavy-lifting'
+    # operations.
+    if env.model_storage.service_template.list(
+            filters={'name': env.service_template_name}):
+        raise ServiceTemplateAlreadyExistsException(
+            '`Install` workflow already ran on deployment(id={deployment.id}).'
+            ' In order to run it again, please first run the `Uninstall` '
+            'workflow for deployment(id={deployment.id})'.format(
+                deployment=ctx.deployment))
+
     # extract csar
     csar_path = ctx.node.properties[CSAR_PATH_PROPERTY]
     csar_source = generate_resource_path(csar_path, env.blueprint_dir)
