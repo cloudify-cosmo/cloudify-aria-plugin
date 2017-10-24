@@ -30,3 +30,7 @@ class MissingServiceException(NonRecoverableError):
 
 class AriaWorkflowError(NonRecoverableError):
     pass
+
+
+class ServiceTemplateAlreadyExistsException(NonRecoverableError):
+    pass

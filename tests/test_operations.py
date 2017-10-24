@@ -36,6 +36,11 @@ def mocked_env(mocker):
     mock_env.blueprint_dir = BLUEPRINT_DIR
     mock_env.plugin_manager = PLUGIN_MANAGER
     mock_env.service_template_name = SERVICE_TEMPLATE_NAME
+    # Each create execution checks that there are no existing service
+    # templates with the same name as the current service template.
+    # This mock ensures that an empty list would
+    # be returned when calling for a list of service templates.
+    mock_env.model_storage.service_template.list.return_value = []
     mocker.patch('aria_plugin.operations.Environment', return_value=mock_env)
     return mock_env
 
@@ -95,7 +100,7 @@ def test_create_no_exception(mocker, mocked_env, mocked_csar, mocked_ctx):
 
 
 @pytest.mark.usefixtures('mocked_env', 'mocked_csar')
-def test_create_raises_exception(mocker, mocked_ctx):
+def test_create_raises_existing_plugin_exception(mocker, mocked_ctx):
     mocker.patch('aria_plugin.operations.cleanup_files')
     mocker.patch('aria_plugin.operations.aria')
     mocker.patch('aria_plugin.operations.install_plugins',
@@ -105,6 +110,15 @@ def test_create_raises_exception(mocker, mocked_ctx):
     # install_plugins raises PluginsAlreadyExistException
     operations.create()
     mocked_ctx.logger.debug.assert_called_once()
+
+
+@pytest.mark.usefixtures('mocked_ctx')
+def test_create_existing_service_exception(mocked_env):
+    mocked_env.model_storage.service_template.list.return_value = \
+        ['existing_service_template']
+
+    with pytest.raises(exceptions.ServiceTemplateAlreadyExistsException):
+        operations.create()
 
 
 def test_start(mocker, mocked_env, mocked_ctx):
