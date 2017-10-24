@@ -55,7 +55,7 @@ def create(**_):
     ctx.logger.info('Storing service template {0}...'
                     .format(env.service_template_name))
     env.core.create_service_template(
-        service_template_path,
+        service_template_path=service_template_path,
         service_template_dir=os.path.dirname(service_template_path),
         service_template_name=env.service_template_name)
     ctx.logger.info('Successfully stored service template')
