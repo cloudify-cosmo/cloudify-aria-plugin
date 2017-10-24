@@ -21,14 +21,14 @@ setup(
     author='cloudify',
     author_email='cosmo-admin@gigaspaces.com',
 
-    version='0.1.0',
+    version='1.0.0',
     description='Cloudify plugin for ARIA.',
 
     packages=['aria_plugin'],
     license='LICENSE',
     install_requires=[
         'apache-ariatosca[ssh]==0.1.1',
-        'cloudify-plugins-common>=3.3.1',
+        'cloudify-plugins-common<=4.2',
         # Until wagon version is normalized, we hard-code the wagon version.
         'wagon==0.6.1',
         # Setuptools used by cloudify is fairly recent as opposed to ARIA.
