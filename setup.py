@@ -27,12 +27,8 @@ setup(
     packages=['aria_plugin'],
     license='LICENSE',
     install_requires=[
-        'apache-ariatosca[ssh]==0.1.1',
+        'apache-ariatosca[ssh]==0.2.0',
+        'aria-extension-cloudify==4.2',
         'cloudify-plugins-common<=4.2',
-        # Until wagon version is normalized, we hard-code the wagon version.
-        'wagon==0.6.1',
-        # Setuptools used by cloudify is fairly recent as opposed to ARIA.
-        # The ARIA setuptools dependency should be updated in future releases.
-        'setuptools>=36.5.0'
     ]
 )
