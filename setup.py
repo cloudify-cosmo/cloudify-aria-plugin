@@ -21,7 +21,7 @@ setup(
     author='cloudify',
     author_email='cosmo-admin@gigaspaces.com',
 
-    version='1.0.0',
+    version='1.1.0',
     description='Cloudify plugin for ARIA.',
 
     packages=['aria_plugin'],
