@@ -17,7 +17,7 @@ import time
 
 import pytest
 
-from aria.orchestrator import workflow_runner
+from aria.orchestrator import execution_preparer
 
 from aria_plugin import executor
 from aria_plugin.exceptions import AriaWorkflowError
@@ -36,59 +36,69 @@ def mocked_env(mocker):
 
 
 def _patch_runner(mocker, success=True):
-    mock_runner = mocker.MagicMock()
-
     mock_execution = mocker.MagicMock()
     mock_execution.SUCCEEDED = 'pass'
     mock_execution.status = 'pass' if success else 'fail'
-    mock_runner.execution = mock_execution
 
-    mocker.patch('aria.orchestrator.workflow_runner.WorkflowRunner',
-                 return_value=mock_runner)
+    mock_ctx = mocker.MagicMock()
+    mock_ctx.execution = mock_execution
 
-    return mock_runner
+    mock_preparer = mocker.MagicMock()
+    mock_preparer.prepare = lambda: mock_ctx
+
+    mocker.patch('aria.orchestrator.execution_preparer.ExecutionPreparer',
+                 return_value=mock_preparer)
+
+    return mock_preparer, mock_ctx
 
 
 def test_successful_execute(mocked_env, mocker):
     mocker.patch('aria.cli.logger.ModelLogIterator', return_value=[])
-    mock_runner = _patch_runner(mocker)
+    mock_runner, mock_ctx = _patch_runner(mocker)
+    mock_execute = \
+        mocker.patch('aria.orchestrator.workflows.core.engine.Engine.execute')
 
     executor.execute(mocked_env, 'workflow_name')
 
-    workflow_runner.WorkflowRunner.assert_called_once_with(
-        'model_storage', 'resource_storage', 'plugin_manager',
-        service_id='service_id',
-        workflow_name='workflow_name',
-        executor=mocker.ANY
+    execution_preparer.ExecutionPreparer.assert_called_once_with(
+        'model_storage',
+        'resource_storage',
+        'plugin_manager',
+        mocked_env.service,
+        'workflow_name',
     )
 
-    mock_runner.execute.assert_called_once()
+    mock_execute.assert_called_once_with(ctx=mock_ctx)
 
 
 def test_failed_execution(mocker, mocked_env):
     mocker.patch('aria.cli.logger.ModelLogIterator', return_value=[])
-    mock_runner = _patch_runner(mocker, success=False)
+    mock_runner, mock_ctx = _patch_runner(mocker, success=False)
+    mock_execute = \
+        mocker.patch('aria.orchestrator.workflows.core.engine.Engine.execute')
 
     with pytest.raises(AriaWorkflowError):
         executor.execute(mocked_env, 'workflow_name')
 
-    workflow_runner.WorkflowRunner.assert_called_once_with(
-        'model_storage', 'resource_storage', 'plugin_manager',
-        service_id='service_id',
-        workflow_name='workflow_name',
-        executor=mocker.ANY
+    execution_preparer.ExecutionPreparer.assert_called_once_with(
+        'model_storage',
+        'resource_storage',
+        'plugin_manager',
+        mocked_env.service,
+        'workflow_name',
     )
 
-    mock_runner.execute.assert_called_once()
+    mock_execute.assert_called_once_with(ctx=mock_ctx)
 
 
 def test_execution_logging(mocker, mocked_env):
-    mock_runner = _patch_runner(mocker)
+    _patch_runner(mocker)
     # The workflow runner executes a thread which does all the heavy lifting,
     # while the main process continues with printing the logs. While the
     # thread is alive, the logs are printed out, thus we need to give the
     # thread some time to run in order to test the logs.
-    mock_runner.execute = lambda *a, **kw: time.sleep(1)
+    mocker.patch('aria.orchestrator.workflows.core.engine.Engine.execute',
+                 side_effect=lambda *a, **kw: time.sleep(1))
 
     mocked_log = mocker.MagicMock()
     mocked_log.level = 'INFO'

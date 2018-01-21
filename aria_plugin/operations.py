@@ -62,7 +62,7 @@ def create(**_):
     ctx.logger.info('Successfully installed required plugins')
 
     # store service template
-    aria.install_aria_extensions()
+    aria.install_aria_extensions(strict=False)
     service_template_path = os.path.join(csar.destination,
                                          csar.entry_definitions)
     ctx.logger.info('Storing service template {0}...'
